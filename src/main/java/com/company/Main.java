@@ -16,7 +16,7 @@ public class Main {
             String charcode = CharCode.nextLine();
             GetCurrency currency = new GetCurrency();
             System.out.println(currency.getCurrency(date, charcode));
-            System.out.println("ЧТОБЫ ВЫЙТИ ИЗ ПРОГРАММЫ ВВЕДИТЕ 'exit'");
+            System.out.println("ЧТОБЫ ВЫЙТИ ИЗ ПРОГРАММЫ ВВЕДИТЕ 'exit', для продолжения нажмите 'ENTER'");
             Scanner cmd = new Scanner(System.in);
             String command = cmd.nextLine().toLowerCase();
             if (command.equals("exit")){
