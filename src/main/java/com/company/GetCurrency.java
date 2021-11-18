@@ -17,8 +17,10 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Formatter;
 import java.util.HashMap;
+
 
 public class GetCurrency {
     public static String getCurrency(String date, String CharCode) throws ParserConfigurationException, IOException, SAXException {
@@ -26,11 +28,19 @@ public class GetCurrency {
         var allInfo = getAllInfo(date);
         var isValidChar = checkCurrency(CharCode, allInfo);
         var isValidDate = checkDate(date);
-        if (isValidChar & date != "" & CharCode != "") {
+        ReadDataBase trr = new ReadDataBase();
+        if (trr.returnValue(date, CharCode.toUpperCase()) != null){
+            Formatter message = new Formatter();
+            message.format("╔ Взято с базы данных!\n╠ Идентификат" +
+                    "ор валюты - %s\n╚ Курс - %s", CharCode, trr.returnValue(date, CharCode.toUpperCase()));
+            value = message.toString();
+        }
+        else if (isValidChar & date != "" & CharCode != "") {
             for (HashMap<String, String> i : allInfo) {
                 if (i.get("CharCode").toLowerCase().equals(CharCode.toLowerCase())) {
                     Formatter message = new Formatter();
-                    message.format("Название валюты - %s\nИдентификатор валюты - %s\nКурс - %s", i.get("Name"), i.get("CharCode"), i.get("Value"));
+                    message.format("╔ Взято с сайта!\n╠ Идентификат" +
+                            "ор валюты - %s\n╚ Курс - %s", i.get("CharCode"), i.get("Value"));
                     value = message.toString();
                 }
             }
@@ -40,37 +50,42 @@ public class GetCurrency {
         else {value =  "Неверно введен индификатор валюты, правильный пример ввода - 'USD'";}
         return value;
     }
-
     private static ArrayList<HashMap<String, String>> getAllInfo(String date) throws ParserConfigurationException, IOException, SAXException {
-
+        String date_z = date;
+        date  = getformateDate(date);
         Formatter request = new Formatter();
         request.format("https://www.cbr.ru/scripts/XML_daily.asp?date_req=%s", date);
         String currency = Unirest.get(request.toString()).asString().getBody();
         HashMap<String, String> valCode = new HashMap<>();
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
-        Document document = builder.parse(new InputSource(new StringReader(currency)));
-        document.getDocumentElement().normalize();
-        NodeList valInfo = document.getElementsByTagName("Valute");
+        StringReader sr = new StringReader(currency);
         ArrayList<HashMap<String, String>> data = new ArrayList<>();
-        for (int i = 0; i < valInfo.getLength(); i++) {
-            Node nNode = valInfo.item(i);
-            Element valElement = (Element) nNode;
-            String charCode = valElement.getElementsByTagName("CharCode").item(0).getTextContent();
-            String value = valElement.getElementsByTagName("Value").item(0).getTextContent();
-            String name = valElement.getElementsByTagName("Name").item(0).getTextContent();
-            HashMap<String, String> map = new HashMap<>();
-            map.put("CharCode", charCode);
-            map.put("Value", value);
-            map.put("Name", name);
-            data.add(map);
+        try {
+            Document document = builder.parse(new InputSource(sr));
+            document.getDocumentElement().normalize();
+            NodeList valInfo = document.getElementsByTagName("Valute");
+            for (int i = 0; i < valInfo.getLength(); i++) {
+                Node nNode = valInfo.item(i);
+                Element valElement = (Element) nNode;
+                String charCode = valElement.getElementsByTagName("CharCode").item(0).getTextContent();
+                String value = valElement.getElementsByTagName("Value").item(0).getTextContent();
+                String name = valElement.getElementsByTagName("Name").item(0).getTextContent();
+                HashMap<String, String> map = new HashMap<>();
+//                ReadDataBase trr = new ReadDataBase();
+//                trr.insertData(date_z, charCode, value);
+                map.put("CharCode", charCode);
+                map.put("Value", value);
+                map.put("Name", name);
+                data.add(map);
+            }
 
+        }finally {
+            sr.close();
         }
         return data;
 
     }
-
-
     private static boolean checkCurrency(String valueIndification, ArrayList<HashMap<String, String>> data) {
         ArrayList<String> charcode = new ArrayList<>();
         for (HashMap<String, String> i : data) {
@@ -86,7 +101,7 @@ public class GetCurrency {
     private static boolean checkDate(String date){
         {
             try {
-                DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+                DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
                 df.setLenient(false);
                 df.parse(date);
                 return true;
@@ -94,5 +109,55 @@ public class GetCurrency {
                 return false;
             }
         }
+    }
+    private static String getformateDate(String date){
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        Date result = null;
+        try {
+            result = df.parse(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        SimpleDateFormat format1;
+        format1 = new SimpleDateFormat(
+                "dd/MM/yyyy");
+        format1.format(result);
+        return format1.format(result);
+    }
+    public static void saveAllInfo(String date) throws ParserConfigurationException, IOException, SAXException {
+        String date_z = date;
+        date  = getformateDate(date);
+        Formatter request = new Formatter();
+        request.format("https://www.cbr.ru/scripts/XML_daily.asp?date_req=%s", date);
+        String currency = Unirest.get(request.toString()).asString().getBody();
+        HashMap<String, String> valCode = new HashMap<>();
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        StringReader sr = new StringReader(currency);
+        ArrayList<HashMap<String, String>> data = new ArrayList<>();
+        try {
+            Document document = builder.parse(new InputSource(sr));
+            document.getDocumentElement().normalize();
+            NodeList valInfo = document.getElementsByTagName("Valute");
+            for (int i = 0; i < valInfo.getLength(); i++) {
+                Node nNode = valInfo.item(i);
+                Element valElement = (Element) nNode;
+                String charCode = valElement.getElementsByTagName("CharCode").item(0).getTextContent();
+                String value = valElement.getElementsByTagName("Value").item(0).getTextContent();
+                String name = valElement.getElementsByTagName("Name").item(0).getTextContent();
+                HashMap<String, String> map = new HashMap<>();
+                ReadDataBase trr = new ReadDataBase();
+                trr.insertData(date_z, charCode, value);
+                map.put("CharCode", charCode);
+                map.put("Value", value);
+                map.put("Name", name);
+                data.add(map);
+            }
+
+        }finally {
+            sr.close();
+        }
+        System.out.println("★ ИНФОРМАЦИЯ УСПЕШНО СОХРАНЕНА! ★");
+
     }
 }

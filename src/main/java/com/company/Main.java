@@ -2,29 +2,23 @@ package com.company;
 import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.util.Scanner;
+import java.util.Objects;
 
 
 public class Main {
     public static void main(String[] args) throws ParserConfigurationException, IOException, SAXException {
-        while (true){
-            System.out.println("Введите даты в формате dd/MM/YY.");
-            Scanner scanner = new Scanner(System.in);
-            String date = scanner.nextLine();
-            System.out.println("Введите индификатор валюты например 'USD'");
-            Scanner CharCode = new Scanner(System.in);
-            String charcode = CharCode.nextLine();
+        String date = args[0];
+        String charcode = args[1];
+        System.out.println(date);
+        if (date.equals("updateDB")){
+            GetCurrency action = new GetCurrency();
+            action.saveAllInfo(charcode);
+        }
+        else if (!date.equals("updateDB")){
             GetCurrency currency = new GetCurrency();
             System.out.println(currency.getCurrency(date, charcode));
-            System.out.println("ЧТОБЫ ВЫЙТИ ИЗ ПРОГРАММЫ ВВЕДИТЕ 'exit', для продолжения нажмите 'ENTER'");
-            Scanner cmd = new Scanner(System.in);
-            String command = cmd.nextLine().toLowerCase();
-            if (command.equals("exit")){
-                break;
-            }
-            System.out.println("===============================");
+        } else{
+            System.out.println("КРИТИЧЕСКАЯ ОШИБКА!");
         }
-
-
     }
 }
