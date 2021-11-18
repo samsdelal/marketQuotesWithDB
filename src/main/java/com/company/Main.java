@@ -9,7 +9,6 @@ public class Main {
     public static void main(String[] args) throws ParserConfigurationException, IOException, SAXException {
         String date = args[0];
         String charcode = args[1];
-        System.out.println(date);
         if (date.equals("updateDB")){
             GetCurrency action = new GetCurrency();
             action.saveAllInfo(charcode);
@@ -18,7 +17,7 @@ public class Main {
             GetCurrency currency = new GetCurrency();
             System.out.println(currency.getCurrency(date, charcode));
         } else{
-            System.out.println("КРИТИЧЕСКАЯ ОШИБКА!");
+            System.out.println("== КРИТИЧЕСКАЯ ОШИБКА! ==");
         }
     }
 }

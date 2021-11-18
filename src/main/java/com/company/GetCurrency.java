@@ -72,8 +72,6 @@ public class GetCurrency {
                 String value = valElement.getElementsByTagName("Value").item(0).getTextContent();
                 String name = valElement.getElementsByTagName("Name").item(0).getTextContent();
                 HashMap<String, String> map = new HashMap<>();
-//                ReadDataBase trr = new ReadDataBase();
-//                trr.insertData(date_z, charCode, value);
                 map.put("CharCode", charCode);
                 map.put("Value", value);
                 map.put("Name", name);
@@ -130,11 +128,9 @@ public class GetCurrency {
         Formatter request = new Formatter();
         request.format("https://www.cbr.ru/scripts/XML_daily.asp?date_req=%s", date);
         String currency = Unirest.get(request.toString()).asString().getBody();
-        HashMap<String, String> valCode = new HashMap<>();
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         StringReader sr = new StringReader(currency);
-        ArrayList<HashMap<String, String>> data = new ArrayList<>();
         try {
             Document document = builder.parse(new InputSource(sr));
             document.getDocumentElement().normalize();
@@ -144,14 +140,8 @@ public class GetCurrency {
                 Element valElement = (Element) nNode;
                 String charCode = valElement.getElementsByTagName("CharCode").item(0).getTextContent();
                 String value = valElement.getElementsByTagName("Value").item(0).getTextContent();
-                String name = valElement.getElementsByTagName("Name").item(0).getTextContent();
-                HashMap<String, String> map = new HashMap<>();
                 ReadDataBase trr = new ReadDataBase();
                 trr.insertData(date_z, charCode, value);
-                map.put("CharCode", charCode);
-                map.put("Value", value);
-                map.put("Name", name);
-                data.add(map);
             }
 
         }finally {
